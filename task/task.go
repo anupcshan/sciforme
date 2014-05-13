@@ -14,6 +14,10 @@ type TaskManager struct {
 }
 
 func (self TaskManager) AddTask(desc string) error {
+	if self.Database == nil {
+		return fmt.Errorf("No database connection defined")
+	}
+
 	td, err := self.Database.CreateNode(neoism.Props{"name": desc})
 	td.AddLabel("Task")
 
