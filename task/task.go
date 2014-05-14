@@ -19,23 +19,24 @@ type TaskManager struct {
 const ERR_TASK = -1
 const TASK_LABEL = "Task"
 
-func (self TaskManager) AddTask(desc string) (error, int) {
+func (self TaskManager) AddTask(desc string) (error, *Task) {
 	if self.Database == nil {
-		return fmt.Errorf("No database connection defined"), ERR_TASK
+		return fmt.Errorf("No database connection defined"), nil
 	}
 
 	td, err := self.Database.CreateNode(neoism.Props{"name": desc})
 	td.AddLabel(TASK_LABEL)
 
 	if err != nil {
-		return fmt.Errorf("DB Error: %q", err), ERR_TASK
+		return fmt.Errorf("DB Error: %q", err), nil
 	}
 
 	if glog.V(2) {
 		glog.Infoln("Added task: ", desc)
 	}
 
-	return nil, td.Id()
+	name, _ := td.Property("name")
+	return nil, &Task{Name: name, Id: td.Id()}
 }
 
 func (self TaskManager) ListTasks() (error, []*Task) {
