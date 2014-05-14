@@ -55,6 +55,10 @@ func TestAddTaskDBNotConnected(t *testing.T) {
 }
 
 func TestAddTaskSuccess(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	db, _ := neoism.Connect("http://localhost:7474/db/data")
 	tm := task.TaskManager{Database: db}
 
@@ -98,6 +102,10 @@ func TestListTasksDBNotConnected(t *testing.T) {
 }
 
 func TestListTasksEmpty(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	db, _ := neoism.Connect("http://localhost:7474/db/data")
 	tm := task.TaskManager{Database: db}
 
@@ -108,6 +116,10 @@ func TestListTasksEmpty(t *testing.T) {
 }
 
 func TestListTasksSingle(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	db, _ := neoism.Connect("http://localhost:7474/db/data")
 	tm := task.TaskManager{Database: db}
 
