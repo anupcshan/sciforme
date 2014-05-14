@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/anupcshan/sciforme/task"
 	"github.com/codegangsta/cli"
 	"github.com/golang/glog"
@@ -18,8 +19,8 @@ func main() {
 	tm := task.TaskManager{Database: db}
 
 	app := cli.NewApp()
-	app.Name = "task"
-	app.Usage = "task list on the command line"
+	app.Name = "sciforme"
+	app.Usage = "Schedule it for me :: task list on the command line"
 	app.Version = "0.1"
 	app.Commands = []cli.Command{
 		{
@@ -40,7 +41,16 @@ func main() {
 			ShortName: "ls",
 			Usage:     "List of tasks to be completed",
 			Action: func(c *cli.Context) {
-				glog.Fatal("TODO: list")
+				err, list := tm.ListTasks()
+				if err != nil {
+					glog.Fatal("Error while fetching list of tasks", err)
+				}
+
+				if list != nil {
+					for i := range list {
+						fmt.Printf("%d:%s\n", list[i].Id, list[i].Name)
+					}
+				}
 			},
 		},
 	}

@@ -52,3 +52,47 @@ func TestAddTaskSuccess(t *testing.T) {
 	labels, _ := node.Labels()
 	assert.Equal(t, labels[0], task.TASK_LABEL, "Testing task label")
 }
+
+func TestListTasksNoDB(t *testing.T) {
+	tm := task.TaskManager{}
+	err, tasks := tm.ListTasks()
+
+	assert.Error(t, err, "Error expected when DB instance was nil")
+	assert.Nil(t, tasks, "Expected nil value for list of tasks")
+}
+
+func TestListTasksDBNotConnected(t *testing.T) {
+	db, _ := neoism.Connect("http://localhost:12345/db/data")
+	tm := task.TaskManager{Database: db}
+
+	err, tasks := tm.ListTasks()
+
+	assert.Error(t, err, "Error expected when non-working DB instance was provided")
+	assert.Nil(t, tasks, "Expected nil value for list of tasks")
+}
+
+func TestListTasksEmpty(t *testing.T) {
+	db, _ := neoism.Connect("http://localhost:7474/db/data")
+	tm := task.TaskManager{Database: db}
+
+	err, tasks := tm.ListTasks()
+
+	assert.NoError(t, err, nil, "No error expected while fetching empty list")
+	assert.Empty(t, tasks, "Expected empty list of tasks")
+}
+
+func TestListTasksSingle(t *testing.T) {
+	db, _ := neoism.Connect("http://localhost:7474/db/data")
+	tm := task.TaskManager{Database: db}
+
+	str, _ := randutil.AlphaString(DESC_LEN)
+	err, id := tm.AddTask(str)
+	node, err := db.Node(id)
+	// Cleanup
+	defer node.Delete()
+
+	err, tasks := tm.ListTasks()
+
+	assert.NoError(t, err, nil, "No error expected while listing tasks")
+	assert.Equal(t, len(tasks), 1, "Expected list of size 1")
+}

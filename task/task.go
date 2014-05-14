@@ -7,6 +7,9 @@ import (
 )
 
 type Task struct {
+	Id           int
+	Name         string
+	dependencies []*Task
 }
 
 type TaskManager struct {
@@ -33,4 +36,25 @@ func (self TaskManager) AddTask(desc string) (error, int) {
 	}
 
 	return nil, td.Id()
+}
+
+func (self TaskManager) ListTasks() (error, []*Task) {
+	if self.Database == nil {
+		return fmt.Errorf("No database connection defined"), nil
+	}
+
+	nodes, err := self.Database.NodesByLabel(TASK_LABEL)
+
+	if err != nil {
+		return fmt.Errorf("DB Error: %q", err), nil
+	}
+
+	var tasks []*Task
+
+	for nId := range nodes {
+		name, _ := nodes[nId].Property("name")
+		tasks = append(tasks, &Task{Name: name, Id: nodes[nId].Id()})
+	}
+
+	return nil, tasks
 }
