@@ -72,13 +72,16 @@ func TestAddTaskSuccess(t *testing.T) {
 	assert.NoError(t, err, nil, "Could not find newly created node in DB")
 
 	// Cleanup
-	defer node.Delete()
+	defer func() {
+		node.Delete()
+	}()
 
 	name, err := node.Property("name")
 	assert.NoError(t, err, nil, "'name' property not set")
 	assert.Equal(t, name, str, "Testing task name")
 
 	labels, _ := node.Labels()
+	assert.True(t, len(labels) > 0, task.TASK_LABEL, "Testing task label")
 	assert.Equal(t, labels[0], task.TASK_LABEL, "Testing task label")
 }
 
@@ -126,8 +129,11 @@ func TestListTasksSingle(t *testing.T) {
 	str, _ := randutil.AlphaString(DESC_LEN)
 	err, tsk := tm.AddTask(str)
 	node, err := db.Node(tsk.Id)
+
 	// Cleanup
-	defer node.Delete()
+	defer func() {
+		node.Delete()
+	}()
 
 	err, tasks := tm.ListTasks()
 
