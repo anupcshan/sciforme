@@ -3,39 +3,34 @@ package task_test
 import (
 	"github.com/anupcshan/sciforme/task"
 	"github.com/jmcvetta/neoism"
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func expect(t *testing.T, a interface{}, b interface{}) {
-	if a != b {
-		t.Errorf("Expected %v (type %v) - Got %v (type %v)",
-			b, reflect.TypeOf(b), a, reflect.TypeOf(a))
-	}
-}
-
 func TestAddTaskNoDB(t *testing.T) {
 	tm := task.TaskManager{}
-	err := tm.AddTask("foo")
+	err, id := tm.AddTask("foo")
 
-	expect(t, err.Error(), "No database connection defined")
+	assert.Error(t, err, "Error expected when DB instance was nil")
+	assert.Equal(t, id, task.ERR_TASK, "Expected error value for new task id")
 }
 
 func TestAddTaskDBNotConnected(t *testing.T) {
 	db, _ := neoism.Connect("http://localhost:12345/db/data")
 	tm := task.TaskManager{Database: db}
-	err := tm.AddTask("foo")
+	err, id := tm.AddTask("foo")
 
-	expect(t, err.Error(), "No database connection defined")
+	assert.Error(t, err, "Error expected when non-working DB instance was provided")
+	assert.Equal(t, id, task.ERR_TASK, "Expected error value for new task id")
 }
 
 func TestAddTaskSuccess(t *testing.T) {
 	// Test data not currently being cleaned up.
 	db, _ := neoism.Connect("http://localhost:7474/db/data")
 	tm := task.TaskManager{Database: db}
-	err := tm.AddTask("foo")
+	err, id := tm.AddTask("foo")
 
 	// Check if data exists in DB.
-
-	expect(t, err, nil)
+	assert.NoError(t, err, nil, "No error expected while adding a new node")
+	assert.NotEqual(t, id, -1, "Expected non-error value for new task id")
 }
