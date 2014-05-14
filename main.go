@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/anupcshan/neoism"
 	"github.com/anupcshan/sciforme/task"
 	"github.com/codegangsta/cli"
 	"github.com/golang/glog"
-	"github.com/jmcvetta/neoism"
 	"os"
 )
 

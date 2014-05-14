@@ -1,14 +1,38 @@
 package task_test
 
 import (
+	"fmt"
+	"github.com/anupcshan/neoism"
 	"github.com/anupcshan/sciforme/task"
-	"github.com/jmcvetta/neoism"
 	"github.com/jmcvetta/randutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
 const DESC_LEN = 20
+
+type MockGraphDB struct {
+	mock.Mock
+}
+
+func (m *MockGraphDB) CreateNode(props neoism.Props) (*neoism.Node, error) {
+	args := m.Mock.Called(props)
+	node, ok := args.Get(0).(*neoism.Node)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return node, args.Error(1)
+}
+
+func (m *MockGraphDB) NodesByLabel(label string) ([]*neoism.Node, error) {
+	args := m.Mock.Called(label)
+	nodes, ok := args.Get(0).([]*neoism.Node)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return nodes, args.Error(1)
+}
 
 func TestAddTaskNoDB(t *testing.T) {
 	tm := task.TaskManager{}
@@ -19,10 +43,11 @@ func TestAddTaskNoDB(t *testing.T) {
 }
 
 func TestAddTaskDBNotConnected(t *testing.T) {
-	db, _ := neoism.Connect("http://localhost:12345/db/data")
-	tm := task.TaskManager{Database: db}
+	mdb := new(MockGraphDB)
+	tm := task.TaskManager{Database: mdb}
 
 	str, _ := randutil.AlphaString(DESC_LEN)
+	mdb.On("CreateNode", neoism.Props{"name": str}).Return(nil, fmt.Errorf(""))
 	err, tsk := tm.AddTask(str)
 
 	assert.Error(t, err, "Error expected when non-working DB instance was provided")
@@ -62,9 +87,10 @@ func TestListTasksNoDB(t *testing.T) {
 }
 
 func TestListTasksDBNotConnected(t *testing.T) {
-	db, _ := neoism.Connect("http://localhost:12345/db/data")
-	tm := task.TaskManager{Database: db}
+	mdb := new(MockGraphDB)
+	tm := task.TaskManager{Database: mdb}
 
+	mdb.On("NodesByLabel", task.TASK_LABEL).Return(nil, fmt.Errorf(""))
 	err, tasks := tm.ListTasks()
 
 	assert.Error(t, err, "Error expected when non-working DB instance was provided")

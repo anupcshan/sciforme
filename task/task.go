@@ -2,8 +2,8 @@ package task
 
 import (
 	"fmt"
+	"github.com/anupcshan/neoism"
 	"github.com/golang/glog"
-	"github.com/jmcvetta/neoism"
 )
 
 type Task struct {
@@ -13,7 +13,7 @@ type Task struct {
 }
 
 type TaskManager struct {
-	Database *neoism.Database
+	Database neoism.GraphDB
 }
 
 const ERR_TASK = -1
@@ -25,11 +25,12 @@ func (self TaskManager) AddTask(desc string) (error, *Task) {
 	}
 
 	td, err := self.Database.CreateNode(neoism.Props{"name": desc})
-	td.AddLabel(TASK_LABEL)
 
 	if err != nil {
 		return fmt.Errorf("DB Error: %q", err), nil
 	}
+
+	td.AddLabel(TASK_LABEL)
 
 	if glog.V(2) {
 		glog.Infoln("Added task: ", desc)
