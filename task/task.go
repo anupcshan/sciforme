@@ -14,6 +14,7 @@ type TaskManager struct {
 }
 
 const ERR_TASK = -1
+const TASK_LABEL = "Task"
 
 func (self TaskManager) AddTask(desc string) (error, int) {
 	if self.Database == nil {
@@ -21,14 +22,14 @@ func (self TaskManager) AddTask(desc string) (error, int) {
 	}
 
 	td, err := self.Database.CreateNode(neoism.Props{"name": desc})
-	td.AddLabel("Task")
+	td.AddLabel(TASK_LABEL)
 
 	if err != nil {
 		return fmt.Errorf("DB Error: %q", err), ERR_TASK
 	}
 
 	if glog.V(2) {
-		return fmt.Errorf("Added task: ", desc), ERR_TASK
+		glog.Infoln("Added task: ", desc)
 	}
 
 	return nil, td.Id()
