@@ -1,15 +1,19 @@
 language: go
 
 go:
-  - 1.0
   - 1.1
   - 1.2
   - tip
 
-services:
-  - neo4j
+env:
+  - NEO_VERSION="2.0.3"
 
-install:
-  - go get
-  - go get github.com/stretchr/testify/assert
-  - go get github.com/stretchr/testify/mock
+before_install:
+  - wget dist.neo4j.org/neo4j-community-$NEO_VERSION-unix.tar.gz
+  - tar -xzf neo4j-community-$NEO_VERSION-unix.tar.gz
+  - neo4j-community-$NEO_VERSION/bin/neo4j start
+
+before_script:
+  - go get -v ./...
+  - go get -v github.com/stretchr/testify/assert
+  - go get -v github.com/stretchr/testify/mock
