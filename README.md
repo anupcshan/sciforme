@@ -1,6 +1,7 @@
 Schedule it for me
 ==================
 
+[![Build Status](https://travis-ci.org/anupcshan/sciforme.svg?branch=master)](https://travis-ci.org/anupcshan/sciforme)
 [![Build Status](https://drone.io/github.com/anupcshan/sciforme/status.png)](https://drone.io/github.com/anupcshan/sciforme/latest)
 [![Coverage Status](https://coveralls.io/repos/anupcshan/sciforme/badge.png?branch=master)](https://coveralls.io/r/anupcshan/sciforme?branch=master)
 
