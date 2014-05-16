@@ -18,6 +18,7 @@ type TaskManager struct {
 
 const ERR_TASK = -1
 const TASK_LABEL = "Task"
+const DEPENDS_ON = "DependsOn"
 
 func (self TaskManager) AddTask(desc string) (error, *Task) {
 	if self.Database == nil {
@@ -59,4 +60,36 @@ func (self TaskManager) ListTasks() (error, []*Task) {
 	}
 
 	return nil, tasks
+}
+
+func (self TaskManager) AddDependency(id int, depId int) (error, *Task) {
+	if self.Database == nil {
+		return fmt.Errorf("No database connection defined"), nil
+	}
+
+	node, err := self.Database.Node(id)
+
+	if err != nil {
+		return fmt.Errorf("Could not find node with id %d, %q", id, err), nil
+	}
+
+	_, err = self.Database.Node(depId)
+
+	if err != nil {
+		return fmt.Errorf("Could not find node with id %d, %q", depId, err), nil
+	}
+
+	_, err = node.Relate(DEPENDS_ON, depId, neoism.Props{})
+
+	if err != nil {
+		return fmt.Errorf("Could not create relationship: %q", err), nil
+	}
+
+	node, err = self.Database.Node(id)
+
+	if err != nil {
+		return fmt.Errorf("Could not find node with id %d, %q", id, err), nil
+	}
+
+	return nil, nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/jmcvetta/randutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"math"
 	"testing"
 )
 
@@ -34,6 +35,15 @@ func (m *MockGraphDB) NodesByLabel(label string) ([]*neoism.Node, error) {
 	return nodes, args.Error(1)
 }
 
+func (m *MockGraphDB) Node(id int) (*neoism.Node, error) {
+	args := m.Mock.Called(id)
+	node, ok := args.Get(0).(*neoism.Node)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return node, args.Error(1)
+}
+
 func TestAddTaskNoDB(t *testing.T) {
 	tm := task.TaskManager{}
 	err, tsk := tm.AddTask("foo")
@@ -52,6 +62,8 @@ func TestAddTaskDBNotConnected(t *testing.T) {
 
 	assert.Error(t, err, "Error expected when non-working DB instance was provided")
 	assert.Nil(t, tsk, "Expected nil value for task")
+
+	mdb.AssertExpectations(t)
 }
 
 func TestAddTaskSuccess(t *testing.T) {
@@ -102,6 +114,8 @@ func TestListTasksDBNotConnected(t *testing.T) {
 
 	assert.Error(t, err, "Error expected when non-working DB instance was provided")
 	assert.Nil(t, tasks, "Expected nil value for list of tasks")
+
+	mdb.AssertExpectations(t)
 }
 
 func TestListTasksEmpty(t *testing.T) {
@@ -139,4 +153,42 @@ func TestListTasksSingle(t *testing.T) {
 
 	assert.NoError(t, err, nil, "No error expected while listing tasks")
 	assert.Equal(t, len(tasks), 1, "Expected list of size 1")
+}
+
+func TestAddDependencyNoDB(t *testing.T) {
+	tm := task.TaskManager{}
+	err, task := tm.AddDependency(1, 2)
+
+	assert.Error(t, err, "Error expected when DB instance was nil")
+	assert.Nil(t, task, "Expected nil value for list of tasks")
+}
+
+func TestAddDependencyDBNotConnected(t *testing.T) {
+	mdb := new(MockGraphDB)
+	tm := task.TaskManager{Database: mdb}
+
+	id, _ := randutil.IntRange(0, math.MaxInt32)
+	depId, _ := randutil.IntRange(0, math.MaxInt32)
+
+	// Id error
+	mdb.On("Node", id).Return(nil, fmt.Errorf(""))
+	err, tsk := tm.AddDependency(id, depId)
+
+	assert.Error(t, err, "Error expected when non-working DB instance was provided")
+	assert.Nil(t, tsk, "Expected nil value for task")
+
+	mdb.AssertExpectations(t)
+
+	// DepId error
+	mdb = new(MockGraphDB)
+	tm = task.TaskManager{Database: mdb}
+
+	mdb.On("Node", id).Return(nil, nil)
+	mdb.On("Node", depId).Return(nil, fmt.Errorf(""))
+	err, tsk = tm.AddDependency(id, depId)
+
+	assert.Error(t, err, "Error expected when non-working DB instance was provided")
+	assert.Nil(t, tsk, "Expected nil value for task")
+
+	mdb.AssertExpectations(t)
 }
